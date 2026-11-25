@@ -2,24 +2,23 @@
 
 The repository's `Dockerfile` builds an Ubuntu 24.04 image with LLVM/Clang 22's Python bindings, CMake, Ninja, the Clang compiler, and pytest. The image includes both the `clang.cindex` Python module and its `libclang` shared library.
 
-## Build and run
+## Prepare the project-local Podman command
 
-Run these commands from the project root. Podman's image storage, runtime state, and temporary files are kept under `.podman/` in the project directory:
+From the project root in Bash, source the helper to create the project-local storage directories and define the `podman_arch_unit` alias:
 
 ```sh
-mkdir -p .podman/storage .podman/run .podman/tmp
-TMPDIR="$PWD/.podman/tmp" podman \
-  --root "$PWD/.podman/storage" \
-  --runroot "$PWD/.podman/run" \
-  --tmpdir "$PWD/.podman/tmp" \
-  --storage-driver=vfs \
-  build -t archunit-cpp-libclang .
-TMPDIR="$PWD/.podman/tmp" podman \
-  --root "$PWD/.podman/storage" \
-  --runroot "$PWD/.podman/run" \
-  --tmpdir "$PWD/.podman/tmp" \
-  --storage-driver=vfs \
-  run --rm archunit-cpp-libclang
+source scripts/podman-local.sh
+```
+
+The alias works from any current directory after it is loaded. Source the script again in a new shell.
+
+## Build and run
+
+Run these commands from the project root. The alias keeps Podman's image storage, runtime state, and temporary files under `.podman/` in the project directory:
+
+```sh
+podman_arch_unit build -t archunit-cpp-libclang .
+podman_arch_unit run --rm archunit-cpp-libclang
 ```
 
 The default container command configures and compiles a small CMake C++ project, runs the pytest plugin tests, then uses `clang.cindex` and its generated `compile_commands.json` to print the resolved direct and transitive includes. The sample source includes `demo/api.hpp`, which itself includes `demo/detail/value.hpp`. Output resembles:
@@ -32,12 +31,7 @@ The default container command configures and compiles a small CMake C++ project,
 To run the example manually rather than through the image's default command:
 
 ```sh
-TMPDIR="$PWD/.podman/tmp" podman \
-  --root "$PWD/.podman/storage" \
-  --runroot "$PWD/.podman/run" \
-  --tmpdir "$PWD/.podman/tmp" \
-  --storage-driver=vfs \
-  run --rm --entrypoint /bin/sh archunit-cpp-libclang -c 'set -eu
+podman_arch_unit run --rm --entrypoint /bin/sh archunit-cpp-libclang -c 'set -eu
 build_dir=$(mktemp -d)
 cmake -S /opt/examples/include-check -B "$build_dir" -G Ninja \
   -DCMAKE_CXX_COMPILER=clang++-22 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
@@ -68,28 +62,12 @@ The fixture uses the matching command from `compile_commands.json`. A transitive
 
 The `.podman/` directory is ignored by Git. The VFS storage driver keeps the setup independent of host overlay filesystem support.
 
-## Use the local Podman store from Bash
-
-Source the helper script from the project root (or by giving its path) to define a `podman_arch_unit` alias that uses this project's `.podman/` storage, runtime, and temporary directories:
-
-```sh
-source scripts/podman-local.sh
-podman_arch_unit ps
-```
-
-The alias works from any current directory after it is loaded. Source the script again in a new shell.
-
 ## Use the bindings interactively
 
 Start a shell in the image with the same project-local Podman directories:
 
 ```sh
-TMPDIR="$PWD/.podman/tmp" podman \
-  --root "$PWD/.podman/storage" \
-  --runroot "$PWD/.podman/run" \
-  --tmpdir "$PWD/.podman/tmp" \
-  --storage-driver=vfs \
-  run --rm -it --entrypoint /bin/bash archunit-cpp-libclang
+podman_arch_unit run --rm -it --entrypoint /bin/bash archunit-cpp-libclang
 ```
 
 Inside the container, use Python 3.12:
