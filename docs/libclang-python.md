@@ -21,33 +21,7 @@ podman_arch_unit build -t archunit-cpp-libclang .
 podman_arch_unit run --rm archunit-cpp-libclang
 ```
 
-The default container command configures and compiles a small CMake C++ project, runs the pytest plugin tests, then uses `clang.cindex` and its generated `compile_commands.json` to print the resolved direct and transitive includes. The sample source includes `demo/api.hpp`, which itself includes `demo/detail/value.hpp`. Output resembles:
-
-```text
-/opt/examples/include-check/src/main.cpp:1 -> /opt/examples/include-check/include/demo/api.hpp
-/opt/examples/include-check/include/demo/api.hpp:3 -> /opt/examples/include-check/include/demo/detail/value.hpp
-```
-
-To run the example manually rather than through the image's default command:
-
-```sh
-podman_arch_unit run --rm --entrypoint /bin/sh archunit-cpp-libclang -c 'set -eu
-build_dir=$(mktemp -d)
-cmake -S /opt/examples/include-check -B "$build_dir" -G Ninja \
-  -DCMAKE_CXX_COMPILER=clang++-22 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-cmake --build "$build_dir"
-python3.12 /opt/examples/list_includes.py \
-  "$build_dir" /opt/examples/include-check/src/main.cpp
-'
-```
-
-From an interactive container shell, the script can inspect another CMake build directory and source file. Use paths as they appear inside the container:
-
-```sh
-python3.12 /opt/examples/list_includes.py <build-directory> <source-file>
-```
-
-It reports resolved include paths recursively. It requires exactly one matching compile command so that the compile flags are unambiguous.
+The default container command runs the pytest plugin tests. Their shared fixture configures and compiles the CMake sample project, then uses its `compile_commands.json` to check direct includes.
 
 ## Use the pytest assertion
 
