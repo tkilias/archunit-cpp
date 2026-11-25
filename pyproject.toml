@@ -11,7 +11,16 @@ requires-python = ">=3.11"
 dependencies = [
 ]
 
+[project.optional-dependencies]
+pytest-plugin = ["pytest>=8"]
+
+[project.entry-points.pytest11]
+libclang_include = "pytest_libclang_include.plugin"
+
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+packages = [{include = "pytest_libclang_include", from = "src"}]

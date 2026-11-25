@@ -1,6 +1,6 @@
 # Clang Python bindings with Podman
 
-The repository's `Dockerfile` builds an Ubuntu 24.04 image with LLVM/Clang 22's Python bindings, CMake, Ninja, and the Clang compiler. The image includes both the `clang.cindex` Python module and its `libclang` shared library.
+The repository's `Dockerfile` builds an Ubuntu 24.04 image with LLVM/Clang 22's Python bindings, CMake, Ninja, the Clang compiler, and pytest. The image includes both the `clang.cindex` Python module and its `libclang` shared library.
 
 ## Build and run
 
@@ -22,7 +22,7 @@ TMPDIR="$PWD/.podman/tmp" podman \
   run --rm archunit-cpp-libclang
 ```
 
-The default container command configures and compiles a small CMake C++ project, then uses `clang.cindex` and its generated `compile_commands.json` to print the resolved direct and transitive includes. The sample source includes `demo/api.hpp`, which itself includes `demo/detail/value.hpp`. Output resembles:
+The default container command configures and compiles a small CMake C++ project, runs the pytest plugin tests, then uses `clang.cindex` and its generated `compile_commands.json` to print the resolved direct and transitive includes. The sample source includes `demo/api.hpp`, which itself includes `demo/detail/value.hpp`. Output resembles:
 
 ```text
 /opt/examples/include-check/src/main.cpp:1 -> /opt/examples/include-check/include/demo/api.hpp
@@ -54,6 +54,17 @@ python3.12 /opt/examples/list_includes.py <build-directory> <source-file>
 ```
 
 It reports resolved include paths recursively. It requires exactly one matching compile command so that the compile flags are unambiguous.
+
+## Use the pytest assertion
+
+The installable plugin provides an `assert_include` fixture. It asserts that the C++ source directly includes a header whose resolved path ends in the supplied suffix:
+
+```python
+def test_main_includes_api(assert_include, build_directory, source_file):
+    assert_include(build_directory, source_file, "demo/api.hpp")
+```
+
+The fixture uses the matching command from `compile_commands.json`. A transitive include does not satisfy the assertion. Install the project with the `pytest-plugin` extra to use the entry point in another pytest project.
 
 The `.podman/` directory is ignored by Git. The VFS storage driver keeps the setup independent of host overlay filesystem support.
 

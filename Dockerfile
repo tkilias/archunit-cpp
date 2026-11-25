@@ -9,10 +9,12 @@ RUN apt-get update \
     && echo "deb [signed-by=/usr/share/keyrings/apt.llvm.org.gpg] https://apt.llvm.org/noble/ llvm-toolchain-noble-22 main" \
         > /etc/apt/sources.list.d/llvm.list \
     && apt-get update \
-    && apt-get install -y --no-install-recommends clang-22 cmake ninja-build python3-clang-22 \
+    && apt-get install -y --no-install-recommends clang-22 cmake ninja-build python3-clang-22 python3-pytest \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 COPY examples /opt/examples
+COPY src /opt/src
+COPY tests /opt/tests
 
 CMD ["/bin/sh", "/opt/examples/run_include_demo.sh"]
