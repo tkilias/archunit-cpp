@@ -1,6 +1,6 @@
 # Clang Python bindings with Podman
 
-The repository's `Dockerfile` builds an Ubuntu 24.04 image with LLVM/Clang 22's Python bindings, CMake, Ninja, the Clang compiler, and pytest. The image includes both the `clang.cindex` Python module and its `libclang` shared library.
+The repository's `Dockerfile` builds an Ubuntu 24.04 image with LLVM/Clang 22's Python bindings, CMake, Ninja, the Clang compiler, and Poetry. The image includes both the `clang.cindex` Python module and its `libclang` shared library. The test runner uses Poetry to install the project and its `pytest-plugin` extra from the mounted checkout.
 
 ## Prepare the project-local Podman command
 
@@ -18,10 +18,15 @@ Run these commands from the project root. The alias keeps Podman's image storage
 
 ```sh
 podman_arch_unit build -t archunit-cpp-libclang .
-podman_arch_unit run --rm archunit-cpp-libclang
+podman_arch_unit run --rm \
+  --userns=keep-id:uid=0,gid=0 \
+  --security-opt label=disable \
+  -v "$PWD:/workspace:ro" \
+  -w /workspace \
+  archunit-cpp-libclang
 ```
 
-The default container command runs the pytest plugin tests. Their shared fixture configures and compiles the CMake sample project under `tests/include-check`, then uses its `compile_commands.json` to check direct includes.
+The repository is bind-mounted read-only at `/workspace`. These user namespace and label options let the rootless container read a checkout under this host's private home directory. The default container command runs `poetry install --extras pytest-plugin` and then the pytest plugin tests. Poetry installs pytest and registers the plugin from the checkout; its virtual environment can access the image's system-installed Clang bindings. The tests' shared fixture configures and compiles the CMake sample project under `tests/include-check` in pytest's temporary directory, then uses its `compile_commands.json` to check direct includes.
 
 ## Use the pytest assertion
 

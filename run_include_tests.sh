@@ -1,6 +1,6 @@
 #!/bin/sh
 set -eu
 
-PYTHONPATH=/opt/src python3.12 -m pytest \
-    -p pytest_libclang_include.plugin \
-    /opt/tests
+cd /workspace
+poetry install --extras pytest-plugin --no-interaction
+poetry run pytest -p no:cacheprovider
