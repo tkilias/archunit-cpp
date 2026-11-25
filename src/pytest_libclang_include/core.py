@@ -71,8 +71,10 @@ def _parse_arguments(command: cindex.CompileCommand, source: Path) -> list[str]:
     return result
 
 
-def read_includes(build_directory: str | Path, source_file: str | Path) -> list[IncludeRecord]:
-    """Parse a source with its compile command and return resolved include events."""
+def parse_translation_unit(
+    build_directory: str | Path, source_file: str | Path
+) -> cindex.TranslationUnit:
+    """Parse a source with its compile command."""
     build_directory = Path(build_directory).resolve()
     source_file = Path(source_file).resolve()
     if not source_file.is_file():
@@ -124,6 +126,12 @@ def read_includes(build_directory: str | Path, source_file: str | Path) -> list[
             f"Clang reported errors while parsing {source_file}:\n{details}"
         )
 
+    return translation_unit
+
+
+def read_includes(build_directory: str | Path, source_file: str | Path) -> list[IncludeRecord]:
+    """Parse a source with its compile command and return resolved include events."""
+    translation_unit = parse_translation_unit(build_directory, source_file)
     includes: list[IncludeRecord] = []
     for inclusion in translation_unit.get_includes():
         including_file = inclusion.location.file
