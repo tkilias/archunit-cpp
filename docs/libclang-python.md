@@ -21,7 +21,7 @@ podman_arch_unit build -t archunit-cpp-libclang .
 podman_arch_unit run --rm archunit-cpp-libclang
 ```
 
-The default container command runs the pytest plugin tests. Their shared fixture configures and compiles the CMake sample project, then uses its `compile_commands.json` to check direct includes.
+The default container command runs the pytest plugin tests. Their shared fixture configures and compiles the CMake sample project under `tests/include-check`, then uses its `compile_commands.json` to check direct includes.
 
 ## Use the pytest assertion
 

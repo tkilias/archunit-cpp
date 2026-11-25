@@ -13,8 +13,8 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-COPY examples /opt/examples
 COPY src /opt/src
 COPY tests /opt/tests
+COPY run_include_tests.sh /opt/run_include_tests.sh
 
-CMD ["/bin/sh", "/opt/examples/run_include_demo.sh"]
+CMD ["/bin/sh", "/opt/run_include_tests.sh"]

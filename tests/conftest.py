@@ -8,8 +8,7 @@ import pytest
 
 @pytest.fixture(scope="session")
 def compiled_demo(tmp_path_factory: pytest.TempPathFactory) -> tuple[Path, Path]:
-    repository_root = Path(__file__).resolve().parents[1]
-    project_directory = repository_root / "examples" / "include-check"
+    project_directory = Path(__file__).resolve().parent / "include-check"
     build_directory = tmp_path_factory.mktemp("include-check-build")
 
     subprocess.run(
