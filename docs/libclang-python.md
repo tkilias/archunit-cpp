@@ -29,6 +29,24 @@ The default container command configures and compiles a small CMake C++ project,
 /opt/examples/include-check/include/demo/api.hpp:3 -> /opt/examples/include-check/include/demo/detail/value.hpp
 ```
 
+To run the example manually rather than through the image's default command:
+
+```sh
+TMPDIR="$PWD/.podman/tmp" podman \
+  --root "$PWD/.podman/storage" \
+  --runroot "$PWD/.podman/run" \
+  --tmpdir "$PWD/.podman/tmp" \
+  --storage-driver=vfs \
+  run --rm --entrypoint /bin/sh archunit-cpp-libclang -c 'set -eu
+build_dir=$(mktemp -d)
+cmake -S /opt/examples/include-check -B "$build_dir" -G Ninja \
+  -DCMAKE_CXX_COMPILER=clang++-22 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+cmake --build "$build_dir"
+python3.12 /opt/examples/list_includes.py \
+  "$build_dir" /opt/examples/include-check/src/main.cpp
+'
+```
+
 From an interactive container shell, the script can inspect another CMake build directory and source file. Use paths as they appear inside the container:
 
 ```sh
