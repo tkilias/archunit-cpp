@@ -57,6 +57,17 @@ It reports resolved include paths recursively. It requires exactly one matching 
 
 The `.podman/` directory is ignored by Git. The VFS storage driver keeps the setup independent of host overlay filesystem support.
 
+## Use the local Podman store from Bash
+
+Source the helper script from the project root (or by giving its path) to define a `podman_arch_unit` alias that uses this project's `.podman/` storage, runtime, and temporary directories:
+
+```sh
+source scripts/podman-local.sh
+podman_arch_unit ps
+```
+
+The alias works from any current directory after it is loaded. Source the script again in a new shell.
+
 ## Use the bindings interactively
 
 Start a shell in the image with the same project-local Podman directories:
