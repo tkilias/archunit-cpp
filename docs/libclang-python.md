@@ -1,6 +1,6 @@
 # Clang Python bindings with Podman
 
-The repository's `Dockerfile` builds an Ubuntu 24.04 image with LLVM/Clang 22's Python bindings. The image includes both the `clang.cindex` Python module and its `libclang` shared library.
+The repository's `Dockerfile` builds an Ubuntu 24.04 image with LLVM/Clang 22's Python bindings, CMake, Ninja, and the Clang compiler. The image includes both the `clang.cindex` Python module and its `libclang` shared library.
 
 ## Build and run
 
@@ -22,11 +22,20 @@ TMPDIR="$PWD/.podman/tmp" podman \
   run --rm archunit-cpp-libclang
 ```
 
-The default container command creates a Clang index and parses a small C++ translation unit. Success prints:
+The default container command configures and compiles a small CMake C++ project, then uses `clang.cindex` and its generated `compile_commands.json` to print the resolved direct and transitive includes. The sample source includes `demo/api.hpp`, which itself includes `demo/detail/value.hpp`. Output resembles:
 
 ```text
-clang.cindex and libclang are working
+/opt/examples/include-check/src/main.cpp:1 -> /opt/examples/include-check/include/demo/api.hpp
+/opt/examples/include-check/include/demo/api.hpp:3 -> /opt/examples/include-check/include/demo/detail/value.hpp
 ```
+
+From an interactive container shell, the script can inspect another CMake build directory and source file. Use paths as they appear inside the container:
+
+```sh
+python3.12 /opt/examples/list_includes.py <build-directory> <source-file>
+```
+
+It reports resolved include paths recursively. It requires exactly one matching compile command so that the compile flags are unambiguous.
 
 The `.podman/` directory is ignored by Git. The VFS storage driver keeps the setup independent of host overlay filesystem support.
 
