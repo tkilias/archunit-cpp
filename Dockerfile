@@ -21,4 +21,4 @@ RUN apt-get update \
 
 WORKDIR /workspace
 
-CMD ["/bin/sh", "/workspace/run_include_tests.sh"]
+CMD ["/bin/sh", "/workspace/run_tests.sh"]
